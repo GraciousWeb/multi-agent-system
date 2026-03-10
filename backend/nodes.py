@@ -40,14 +40,12 @@ async def scout_node(state: AgentState):
 
     new_notes = []
     for q in search_queries:
-        # Step 1 — search
         results = await fintech_search.ainvoke({
             "query":    q,
             "market":   market,
             "category": "general"
         })
 
-        # Step 2 — extract full content from top 3 URLs
         try:
             urls = [r["url"] for r in results[:3] if isinstance(r, dict) and "url" in r]
             if urls:
@@ -99,12 +97,29 @@ QUERIES ALREADY ATTEMPTED (do NOT repeat these):
         else "No red flags are applicable to this query type — do not penalise for their absence."
     )
 
+    human_feedback = state.human_feedback or ""
+    human_direction = ""
+    already_acted_on = human_feedback in (state.attempted_queries or [])
+
+    if human_feedback and human_feedback.lower() not in ("approve", "reject") and not already_acted_on:
+        human_direction = f"""
+
+HUMAN RESEARCHER DIRECTION:
+The human reviewer specifically requested: "{human_feedback}"
+RULES:
+- Your follow_up_queries MUST include this direction as a search query.
+- Do NOT discard, override or ignore what the human asked for.
+- Treat this as the highest priority research directive.
+"""
+
     system_prompt = f"""
 You are a Senior Fintech Compliance Analyst auditing research for the {market} market.
 
 POLICY FOCUS: {', '.join(policy.focus)}
 REQUIRED SOURCES: {', '.join(policy.required_sources)}
 {red_flag_section}
+
+{human_direction}
 
 {attempted_section}
 
@@ -118,6 +133,12 @@ Score the research from 1 to 10:
   7 to 8  = Mostly complete, minor gaps not critical to the core answer
   5 to 6  = Partial — key facts missing
   1 to 4  = Insufficient — core question unanswered
+
+If a HUMAN RESEARCHER DIRECTION was provided:
+- You MUST check if that specific direction was answered in the research.
+- If it was NOT answered, reduce quality_score by at least 2 points and
+  add a skeptic note explaining what was missing.
+- Only set should_loop = FALSE if the human direction is clearly addressed.
 
 ALWAYS populate skeptic_notes regardless of whether should_loop is True or False.
 When research passes, skeptic_notes should contain:
@@ -146,6 +167,9 @@ DO NOT loop back for:
   - Red flags that don't apply to this query type
   - Perfectionism — 70%+ complete is good enough to pass to human
 
+If a HUMAN RESEARCHER DIRECTION is provided above, set should_loop = TRUE
+and include that direction in follow_up_queries regardless of quality_score.
+
 Return strict JSON per the schema.
 """.strip()
 
@@ -153,16 +177,25 @@ Return strict JSON per the schema.
     research_content = truncate_notes(state.raw_research_notes)
 
     critique = await structured_llm.ainvoke([
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=f"""
+    SystemMessage(content=system_prompt),
+    HumanMessage(content=f"""
 Original Query: {state.query}
+{f'Human specifically requested: "{human_feedback}" — verify this is answered in the research below.' if human_feedback and human_feedback.lower() not in ("approve", "reject") else ''}
 
 Research Collected So Far:
 {research_content}
 
 Iteration: {state.iteration_count} of 3 | Queries attempted: {len(all_attempted)}
 """)
-    ])
+])
+
+    if human_direction and not already_acted_on and not critique.should_loop:
+        print("  ↺ Human direction detected — overriding skeptic pass, sending to scout.")
+        return {
+            "is_satisfactory":   False,
+            "follow_up_queries": [human_feedback],
+            "skeptic_notes":     critique.skeptic_notes,
+       }
 
     print(f"Audit Score: {critique.quality_score}/10 | Loop: {critique.should_loop}")
     if not critique.should_loop:
@@ -175,7 +208,6 @@ Iteration: {state.iteration_count} of 3 | Queries attempted: {len(all_attempted)
         "follow_up_queries": critique.follow_up_queries if critique.should_loop else [],
         "skeptic_notes":     critique.skeptic_notes,
     }
-
 
 def human_review(state: AgentState):
     """

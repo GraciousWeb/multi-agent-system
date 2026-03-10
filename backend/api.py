@@ -126,16 +126,30 @@ async def stream(thread_id: str, query: str, market: str):
 async def review(thread_id: str, request: ReviewRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
-    human_verdict = request.feedback.split()[0].lower() if request.feedback else "reject"
-    if human_verdict not in ("approve", "reject"):
-        human_verdict = "comment"
+    feedback = request.feedback.strip()
+    first_word = feedback.split()[0].lower() if feedback else "reject"
+
+    if first_word == "approve":
+        human_verdict  = "approve"
+        follow_up_queries = []
+
+    elif first_word == "reject":
+        human_verdict = "reject"
+        remaining = " ".join(feedback.split()[1:]).strip()
+        follow_up_queries = [remaining] if remaining else []
+ 
+
+    else:
+       
+        human_verdict     = "comment"
+        follow_up_queries = [feedback]
 
     graph_app.update_state(
         config,
         {
             "human_verdict":     human_verdict,
-            "human_feedback":    request.feedback,
-            "follow_up_queries": [request.feedback] if human_verdict in ("reject", "comment") else [],
+            "human_feedback":    feedback,
+            "follow_up_queries": follow_up_queries,
         },
         as_node="human_review"
     )
