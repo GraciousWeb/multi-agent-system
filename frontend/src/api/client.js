@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:8000';
+const BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export async function startRun(query, market) {
   const res = await fetch(`${BASE}/run`, {
