@@ -233,17 +233,31 @@ async def writer_node(state: AgentState):
     """
     print("Synthesizer is drafting the final Intelligence Brief...")
 
+    human_feedback = state.human_feedback or ""
+    human_directions_section = ""
+    if human_feedback and human_feedback.lower() not in ("approve", "reject"):
+        human_directions_section = f"""
+ADDITIONAL SCOPE REQUESTED BY HUMAN RESEARCHER:
+"{human_feedback}"
+- This topic was specifically requested and researched.
+- You MUST include findings related to this in the brief.
+- Do not omit it even if it differs from the original query.
+"""
+
     system_prompt = f"""
 You are a world-class Financial Journalist. Create a structured Fintech Intelligence Brief.
 Target Market: {state.target_market}
 Current Date: {datetime.now().strftime('%Y-%m-%d')}
 
 STRICT RULES:
-- Only include stories that DIRECTLY answer the original query: {state.query}
-- If a source does not directly answer the query, exclude it entirely.
+- Cover the original query: {state.query}
+- If a source does not directly answer the query or human directions, exclude it entirely.
 - Do not infer or generalize — only report what is explicitly in the research.
+- Use the skeptic's notes to highlight verified red flags and caveats.
 
-Use the verified research to fill the required schema. Highlight Red Flags found by the Analyst.
+{human_directions_section}
+
+Use the verified research to fill the required schema.
 """.strip()
 
     structured_llm = llm.with_structured_output(IntelligenceBrief)
@@ -251,7 +265,14 @@ Use the verified research to fill the required schema. Highlight Red Flags found
 
     final_report = await structured_llm.ainvoke([
         SystemMessage(content=system_prompt),
-        HumanMessage(content=f"Original Query: {state.query}\n\nFinal Verified Research:\n{research_content}")
+        HumanMessage(content=f"""
+Original Query: {state.query}
+{f'Human also requested: "{human_feedback}"' if human_directions_section else ''}
+Skeptic Notes: {' | '.join(state.skeptic_notes or [])}
+
+Final Verified Research:
+{research_content}
+""")
     ])
 
     return {"final_brief": final_report}
