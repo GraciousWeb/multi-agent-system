@@ -1,0 +1,142 @@
+.qf-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.qf-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--subtext);
+  margin-bottom: 20px;
+}
+
+.qf-field {
+  margin-bottom: 18px;
+}
+
+.qf-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--subtext);
+  margin-bottom: 8px;
+}
+
+.qf-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  appearance: none;
+}
+
+.qf-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 255, 148, .08);
+}
+
+.qf-input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.qf-input option {
+  background: var(--surface);
+}
+
+.qf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+  color: #000;
+  transition: background .15s, transform .15s;
+}
+
+.qf-btn:hover:not(:disabled) {
+  background: #00e085;
+  transform: translateY(-1px);
+}
+
+.qf-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.qf-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(0, 0, 0, .2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+.qf-submitted {
+  margin-bottom: 20px;
+  padding: 14px;
+  background: rgba(0, 255, 148, .04);
+  border: 1px solid rgba(0, 255, 148, .15);
+  border-radius: 3px;
+}
+
+.qf-submitted-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.qf-submitted-market {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(0, 255, 148, .08);
+  border: 1px solid rgba(0, 255, 148, .15);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.qf-submitted-query {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  font-style: italic;
+  margin-top: 6px;
+}
+
+.qf-running {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
