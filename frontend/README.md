@@ -1,70 +1,170 @@
-# Getting Started with Create React App
+# Fintech Intel Squad
+### Autonomous Research · Compliance Audit · Verified Briefs
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A multi-agent AI system that autonomously researches, audits and writes fintech intelligence briefs — with a human in the loop at every critical decision point.
 
-## Available Scripts
+Built with **LangGraph**, **FastAPI**, and **React**.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## What It Does
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+You ask a question. The squad goes to work.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+A **Scout** searches the web across high-trust regional sources. A **Skeptic** audits the findings for quality, source trust and regulatory relevance — and sends the scout back if the answer isn't good enough. A **Writer** synthesises everything into a structured intelligence brief. At key checkpoints, a **human can approve, reject, or redirect** the entire research direction before the final brief is produced.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+###Agent Roles
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+| **Scout** | Searches across regional fintech sources using Tavily. Accumulates findings across iterations.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| **Skeptic** | Audits research quality, verifies sources, checks for red flags, decides whether to loop or escalate.
 
-### `npm run eject`
+| **Human Review** | Interrupts the graph and waits for human input before proceeding.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| **Writer** | Synthesises verified research into a structured `IntelligenceBrief`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Key Features
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **Human-in-the-Loop** — execution pauses for human approval at every audit checkpoint
+- **Closed-loop verification** — the skeptic tracks all previously attempted queries and forces novel follow-ups
+- **Region-aware auditing** — different compliance policies for NG, US, UK, EU and GLOBAL markets
+- **Query-scoped red flags** — red flags are only applied when relevant to the query type
+- **Full article extraction** — scout fetches complete article content, not just snippets
+- **Real-time SSE streaming** — agent activity streams live to the frontend
+- **Persistent review history** — all human decisions are visible throughout the session
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Tech Stack
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**Backend**
+- LangGraph — multi-agent orchestration and state management
+- FastAPI — async API with Server-Sent Events streaming
+- LangChain OpenAI — GPT-4o-mini for all agents
+- Tavily — web search with domain filtering
+- Pydantic — typed state and structured outputs
 
-### Code Splitting
+**Frontend**
+- React — component-based UI
+- EventSource API — real-time SSE stream handling
+- Custom CSS with CSS variables for theming
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-### Making a Progressive Web App
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Getting Started
 
-### Advanced Configuration
+### Prerequisites
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- Python 3.11+
+- Node.js 18+
+- OpenAI API key
+- Tavily API key
 
-### Deployment
+### Backend Setup
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+cd ResearchAgents/backend
 
-### `npm run build` fails to minify
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# Install dependencies
+pip install -r requirements.txt
+
+# Add environment variables
+cp .env.example .env
+# Fill in OPENAI_API_KEY and TAVILY_API_KEY
+
+# Start the server
+python -m uvicorn api:api --reload --port 8000
+```
+
+### Frontend Setup
+
+```bash
+cd ResearchAgents/frontend
+
+npm install
+npm start  # runs on http://localhost:3000
+```
+
+---
+
+## Environment Variables
+
+### Backend `.env`
+```
+OPENAI_API_KEY=your_openai_key
+TAVILY_API_KEY=your_tavily_key
+```
+
+### Frontend `.env`
+```
+REACT_APP_API_URL=http://localhost:8000
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/run` | Start a new research session, returns `thread_id` |
+| `GET` | `/stream/{thread_id}` | SSE stream — live agent activity |
+| `POST` | `/review/{thread_id}` | Submit human verdict (approve / reject / comment) |
+| `GET` | `/resume/{thread_id}` | SSE stream — resume after human review |
+
+---
+
+## Supported Markets
+
+| Market | Policy Focus | Key Sources |
+|---|---|---|
+| 🇳🇬 NG | CBN circulars, SEC Nigeria, Naira stablecoin | cbn.gov.ng, nairametrics.com, techcabal.com |
+| 🇺🇸 US | SEC filings, FinCEN updates, Series A-E funding | sec.gov, techcrunch.com, reuters.com |
+| 🇬🇧 UK | FCA Consumer Duty, Open Banking, SDR labels | fca.org.uk, bankofengland.co.uk, finextra.com |
+| 🇪🇺 EU | MiCA compliance, DORA audits, PSD3/PSR | esma.europa.eu, eba.europa.eu, ec.europa.eu |
+| 🌍 GLOBAL | Cross-border trends, global funding | bloomberg.com, bis.org, fsb.org, finextra.com |
+
+---
+
+## Example Queries
+
+```
+"What are the latest CBN guidelines on Open Banking API standards 
+ and which Nigerian fintechs have achieved compliance as of 2026?"
+
+"Which African fintech companies closed Series B or above funding 
+ rounds in Q1 2026 and what were the lead investors and valuations?"
+
+"How are MiCA regulations affecting African and emerging market 
+ fintechs seeking EU market access in 2026?"
+
+"How is the CBN's agent banking exclusivity rule impacting OPay, 
+ PalmPay and Moniepoint's market share in 2026?"
+```
+
+
+---
+
+## Skills Demonstrated
+
+- Multi-agent system design and orchestration
+- Human-in-the-Loop patterns with LangGraph `interrupt()` and `update_state()`
+- Async state management across graph interrupts and resumptions
+- SSE streaming with FastAPI and React EventSource
+- Prompt engineering for structured outputs and stopping criteria
+- Region-aware compliance policy design
+- Full-stack integration (FastAPI + React)
+
+---
