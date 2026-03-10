@@ -46,7 +46,7 @@ export default function ActivityLog({ logs }) {
 
   return (
     <div className="al-card">
-      <div className="al-title">// Agent Activity</div>
+      <div className="al-title">Agent Activity</div>
       <div className="al-list">
         {logs.map((log, i) => {
           if (log.type === 'scout')   return <ScoutEntry   key={i} {...log} />;

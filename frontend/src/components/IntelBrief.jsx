@@ -46,7 +46,7 @@ export default function IntelBrief({ brief, onReset }) {
 
   return (
     <div className="ib-card">
-      <div className="ib-card-title">// Final Intelligence Brief</div>
+      <div className="ib-card-title">Final Intelligence Brief</div>
 
       <div className="ib-header">
         <h2 className="ib-headline">{brief.headline}</h2>
